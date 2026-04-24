@@ -94,7 +94,7 @@ export default function TokenInspector({ selectedIndex, tokens, data, temperatur
           <div style={subPanelStyle}>
             <MatrixTable title="Selected output vector" tokens={[tokens[selectedIndex]]} matrix={[outputVector]} />
             <div style={{ color: "#cbd5e1", fontSize: 14, lineHeight: 1.6, marginTop: 12 }}>
-              This is the final vector for <strong>{tokens[selectedIndex]}</strong> after attention mixes value vectors from all source tokens.
+              This is the final vector for the selected token after attention mixes value vectors from all source tokens.
             </div>
           </div>
           <div style={subPanelStyle}>

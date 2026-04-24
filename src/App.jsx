@@ -185,7 +185,7 @@ export default function App() {
     return headDiversity(tokens, dModel, temperature, validHeadOptions, usePositional, causalMask);
   }, [data, tokens, dModel, temperature, validHeadOptions, usePositional, causalMask]);
 
-  const navItems = [
+  const navItems = useMemo(() => [
     { id: "input-tokens", label: "Input Tokens" },
     { id: "input-embeddings", label: "Input Embeddings" },
     { id: "qkv", label: "Q/K/V" },
@@ -199,7 +199,7 @@ export default function App() {
     { id: "masked-attention", label: "Masked Attention" },
     { id: "experiment-mode", label: "Experiment Mode" },
     { id: "research-summary", label: "Research Summary" },
-  ];
+  ], []);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
