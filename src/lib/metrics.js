@@ -32,10 +32,14 @@ function rowSumValues(weights) {
 }
 
 function maxWeight(weights) {
+  if (!Array.isArray(weights) || !weights.length || !weights.flat().length) return 0;
   return Math.max(...weights.flat());
 }
 
 function strongestAttentionPair(weights, tokens) {
+  if (!Array.isArray(weights) || !weights.length) {
+    return { value: 0, query: null, key: null, row: -1, col: -1 };
+  }
   let best = { value: -Infinity, query: null, key: null, row: -1, col: -1 };
   weights.forEach((row, i) => {
     row.forEach((value, j) => {
@@ -66,6 +70,7 @@ function dotProduct(a, b) {
 }
 
 function headSimilarityMatrix(headWeights) {
+  if (!Array.isArray(headWeights) || !headWeights.length) return [];
   const heads = headWeights.length;
   const sim = Array.from({ length: heads }, () => Array(heads).fill(0));
   const norms = headWeights.map((weights) => frobeniusNorm(weights));

@@ -39,7 +39,7 @@ export default function QKVSection({ tokens, inputX, Q, K, V, beginnerMode, sele
         <div style={{ color: "#cbd5e1" }}>
           {selectedToken != null && (
             <div>
-              Selected token <strong>{tokens[selectedToken]}</strong> has query, key, and value vectors shown above in the current view.
+              Selected token <strong>{tokens[selectedToken]}</strong> has query, key, and value vectors highlighted above.
             </div>
           )}
         </div>

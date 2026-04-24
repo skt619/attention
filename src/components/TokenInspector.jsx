@@ -52,7 +52,7 @@ export default function TokenInspector({ selectedIndex, tokens, data, temperatur
     <div style={panelStyle}>
       <h3 style={{ marginTop: 0 }}>Selected token inspection</h3>
       <div style={{ color: "#cbd5e1", marginBottom: 16 }}>
-        Track how <strong>{tokens[selectedIndex]}</strong> moves through attention, scores, and output.
+        Track how the selected token moves through attention, scores, and output.
       </div>
 
       <div style={{ display: "grid", gap: 18, marginBottom: 18 }}>

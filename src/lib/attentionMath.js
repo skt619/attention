@@ -25,6 +25,9 @@ function randn(rand) {
 }
 
 function matmul(A, B) {
+  if (!Array.isArray(A) || !Array.isArray(B) || !A.length || !B.length || !Array.isArray(B[0])) {
+    return [];
+  }
   const rows = A.length;
   const cols = B[0].length;
   const inner = B.length;
@@ -43,6 +46,7 @@ function matmul(A, B) {
 }
 
 function transpose(A) {
+  if (!Array.isArray(A) || !A.length || !Array.isArray(A[0])) return [];
   return A[0].map((_, j) => A.map((row) => row[j]));
 }
 
@@ -91,6 +95,9 @@ function initProjectionMatrix(dModel, rand) {
 }
 
 function projectQKV(X, dModel, seed = 3) {
+  if (!Array.isArray(X) || !X.length || !Array.isArray(X[0]) || X[0].length !== dModel) {
+    return { Q: [], K: [], V: [], Wq: [], Wk: [], Wv: [] };
+  }
   const rand = mulberry32(seed);
   const Wq = initProjectionMatrix(dModel, rand);
   const Wk = initProjectionMatrix(dModel, rand);
@@ -115,11 +122,31 @@ function makeCausalMask(sequenceLength) {
 
 function addMask(scores, mask) {
   if (!mask) return scores;
-  return scores.map((row, i) => row.map((value, j) => value + mask[i][j]));
+  return scores.map((row, i) => row.map((value, j) => value + (mask[i]?.[j] ?? 0)));
 }
 
 function attention(Q, K, V, options = {}) {
   const { temperature = 1, scale = true, mask = null } = options;
+  if (
+    !Array.isArray(Q) ||
+    !Array.isArray(K) ||
+    !Array.isArray(V) ||
+    !Q.length ||
+    !K.length ||
+    !V.length ||
+    !Array.isArray(Q[0]) ||
+    !Array.isArray(K[0]) ||
+    !Array.isArray(V[0]) ||
+    Q[0].length !== K[0].length
+  ) {
+    return {
+      rawScores: [],
+      scaledScores: [],
+      maskedScores: [],
+      weights: [],
+      output: [],
+    };
+  }
   const dK = Q[0].length;
   let scores = matmul(Q, transpose(K));
   const raw = scores;
@@ -139,9 +166,19 @@ function attention(Q, K, V, options = {}) {
 }
 
 function splitHeads(X, numHeads) {
+  if (
+    !Array.isArray(X) ||
+    !X.length ||
+    !Array.isArray(X[0]) ||
+    !Number.isInteger(numHeads) ||
+    numHeads <= 0 ||
+    X[0].length % numHeads !== 0
+  ) {
+    return [];
+  }
   const n = X.length;
   const dModel = X[0].length;
-  const headDim = Math.floor(dModel / numHeads);
+  const headDim = dModel / numHeads;
   const heads = [];
   for (let h = 0; h < numHeads; h++) {
     heads.push(
@@ -154,10 +191,17 @@ function splitHeads(X, numHeads) {
 }
 
 function concatHeads(headOutputs) {
+  if (!Array.isArray(headOutputs) || !headOutputs.length || !headOutputs[0]?.length) return [];
   return headOutputs[0].map((_, rowIndex) =>
     headOutputs
       .map((head) => head[rowIndex])
       .reduce((acc, headRow) => acc.concat(headRow), [])
+  );
+}
+
+function validHeadOptionsForDModel(dModel, candidates = [1, 2, 4, 8]) {
+  return candidates.filter(
+    (h) => Number.isInteger(h) && h > 0 && h <= dModel && dModel % h === 0
   );
 }
 
@@ -171,4 +215,5 @@ export {
   positionalEncoding,
   projectQKV,
   splitHeads,
+  validHeadOptionsForDModel,
 };

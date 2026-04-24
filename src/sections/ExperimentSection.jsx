@@ -47,14 +47,18 @@ function ExperimentTable({ title, columns, rows }) {
 }
 
 export default function ExperimentSection({ temperatureData, positionalComparison, diversityData, beginnerMode }) {
-  const tempRows = temperatureData.map((point) => ({
+  const safeTemperatureData = Array.isArray(temperatureData) ? temperatureData : [];
+  const safeDiversityData = Array.isArray(diversityData) ? diversityData : [];
+  const withPosEntropy = positionalComparison?.withPos?.avgEntropy;
+  const noPosEntropy = positionalComparison?.noPos?.avgEntropy;
+  const tempRows = safeTemperatureData.map((point) => ({
     Temperature: point.temperature.toFixed(2),
     "Avg entropy": point.avgEntropy.toFixed(3),
     Sparsity: point.sparsity.toFixed(3),
     "Max weight": point.maxWeight.toFixed(3),
   }));
 
-  const diversityRows = diversityData.map((point) => ({
+  const diversityRows = safeDiversityData.map((point) => ({
     Heads: point.heads,
     "Avg similarity": point.averageSimilarity.toFixed(3),
     "Diversity score": point.diversity.toFixed(3),
@@ -76,8 +80,8 @@ export default function ExperimentSection({ temperatureData, positionalCompariso
             title="Avg entropy vs temperature"
             traces={[
               {
-                x: temperatureData.map((point) => point.temperature),
-                y: temperatureData.map((point) => point.avgEntropy),
+                x: safeTemperatureData.map((point) => point.temperature),
+                y: safeTemperatureData.map((point) => point.avgEntropy),
                 type: "scatter",
                 mode: "lines+markers",
                 name: "Entropy",
@@ -91,8 +95,8 @@ export default function ExperimentSection({ temperatureData, positionalCompariso
             title="Sparsity vs temperature"
             traces={[
               {
-                x: temperatureData.map((point) => point.temperature),
-                y: temperatureData.map((point) => point.sparsity),
+                x: safeTemperatureData.map((point) => point.temperature),
+                y: safeTemperatureData.map((point) => point.sparsity),
                 type: "scatter",
                 mode: "lines+markers",
                 name: "Sparsity",
@@ -106,8 +110,8 @@ export default function ExperimentSection({ temperatureData, positionalCompariso
             title="Max attention vs temperature"
             traces={[
               {
-                x: temperatureData.map((point) => point.temperature),
-                y: temperatureData.map((point) => point.maxWeight),
+                x: safeTemperatureData.map((point) => point.temperature),
+                y: safeTemperatureData.map((point) => point.maxWeight),
                 type: "scatter",
                 mode: "lines+markers",
                 name: "Max weight",
@@ -120,15 +124,15 @@ export default function ExperimentSection({ temperatureData, positionalCompariso
         </div>
         <ExperimentTable title="Temperature sweep" columns={["Temperature", "Avg entropy", "Sparsity", "Max weight"]} rows={tempRows} />
         <div style={{ color: "#cbd5e1", fontSize: 14 }}>
-          Positional encoding comparison: average entropy with positional encoding is {positionalComparison.withPos.avgEntropy.toFixed(3)}, without is {positionalComparison.noPos.avgEntropy.toFixed(3)}.
+          Positional encoding comparison: average entropy with positional encoding is {Number.isFinite(withPosEntropy) ? withPosEntropy.toFixed(3) : "0.000"}, without is {Number.isFinite(noPosEntropy) ? noPosEntropy.toFixed(3) : "0.000"}.
         </div>
         <div style={{ display: "grid", gap: 18 }}>
           <LineChartPanel
             title="Diversity vs heads"
             traces={[
               {
-                x: diversityData.map((point) => point.heads),
-                y: diversityData.map((point) => point.diversity),
+                x: safeDiversityData.map((point) => point.heads),
+                y: safeDiversityData.map((point) => point.diversity),
                 type: "scatter",
                 mode: "lines+markers",
                 name: "Diversity",

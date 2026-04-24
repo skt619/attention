@@ -24,6 +24,7 @@ import {
   positionalEncoding,
   projectQKV,
   splitHeads,
+  validHeadOptionsForDModel,
 } from "./lib/attentionMath.js";
 import {
   average,
@@ -79,6 +80,8 @@ export default function App() {
   const [activeSection, setActiveSection] = useState("input-tokens");
 
   const tokens = useMemo(() => tokensFromText(tokenText), [tokenText]);
+  const validHeadOptions = useMemo(() => validHeadOptionsForDModel(dModel), [dModel]);
+  const activeNumHeads = validHeadOptions.includes(numHeads) ? numHeads : validHeadOptions[0];
 
   useEffect(() => {
     if (selectedToken >= tokens.length) {
@@ -86,8 +89,14 @@ export default function App() {
     }
   }, [tokens, selectedToken]);
 
+  useEffect(() => {
+    if (validHeadOptions.length && !validHeadOptions.includes(numHeads)) {
+      setNumHeads(validHeadOptions[0]);
+    }
+  }, [numHeads, validHeadOptions]);
+
   const data = useMemo(() => {
-    if (tokens.length < 2 || dModel % numHeads !== 0) return null;
+    if (tokens.length < 2 || !activeNumHeads) return null;
 
     const embed = makeTokenEmbeddings(tokens, dModel);
     const pe = positionalEncoding(tokens.length, dModel);
@@ -98,11 +107,12 @@ export default function App() {
     const unmaskedResult = attention(Q, K, V, { temperature, scale: true, mask: null });
     const unscaledResult = attention(Q, K, V, { temperature, scale: false, mask: null });
 
-    const qHeads = splitHeads(Q, numHeads);
-    const kHeads = splitHeads(K, numHeads);
-    const vHeads = splitHeads(V, numHeads);
+    const qHeads = splitHeads(Q, activeNumHeads);
+    const kHeads = splitHeads(K, activeNumHeads);
+    const vHeads = splitHeads(V, activeNumHeads);
 
     const headResults = qHeads.map((qh, index) => {
+      if (!kHeads[index] || !vHeads[index]) return null;
       const result = attention(qh, kHeads[index], vHeads[index], { temperature, scale: true, mask });
       const entropies = attentionEntropy(result.weights);
       const sparsity = sparsityMetric(result.weights, 0.05);
@@ -111,7 +121,7 @@ export default function App() {
         entropy: average(entropies),
         sparsity: sparsity.sparsity,
       };
-    });
+    }).filter(Boolean);
 
     const rowSums = rowSumValues(attentionResult.weights);
     const entropies = attentionEntropy(attentionResult.weights);
@@ -142,7 +152,7 @@ export default function App() {
       headSimilarity,
       diversity,
     };
-  }, [tokens, dModel, numHeads, temperature, usePositional, causalMask]);
+  }, [tokens, dModel, activeNumHeads, temperature, usePositional, causalMask]);
 
   const averageHeadSimilarity = useMemo(() => {
     if (!data?.headSimilarity) return 0;
@@ -162,8 +172,8 @@ export default function App() {
 
   const experimentData = useMemo(() => {
     if (!data) return [];
-    return temperatureSweep(tokens, dModel, numHeads, [0.25, 0.5, 1, 2, 5], usePositional, causalMask);
-  }, [data, tokens, dModel, numHeads, usePositional, causalMask]);
+    return temperatureSweep(tokens, dModel, activeNumHeads, [0.25, 0.5, 1, 2, 5], usePositional, causalMask);
+  }, [data, tokens, dModel, activeNumHeads, usePositional, causalMask]);
 
   const positionalComparison = useMemo(() => {
     if (!data) return null;
@@ -172,8 +182,8 @@ export default function App() {
 
   const diversityData = useMemo(() => {
     if (!data) return [];
-    return headDiversity(tokens, dModel, temperature, [1, 2, 4, 8], usePositional, causalMask);
-  }, [data, tokens, dModel, temperature, usePositional, causalMask]);
+    return headDiversity(tokens, dModel, temperature, validHeadOptions, usePositional, causalMask);
+  }, [data, tokens, dModel, temperature, validHeadOptions, usePositional, causalMask]);
 
   const navItems = [
     { id: "input-tokens", label: "Input Tokens" },
@@ -223,7 +233,7 @@ export default function App() {
     );
   }
 
-  const summary = `The input sentence contains ${tokens.length} tokens with d_model=${dModel}. Using ${numHeads} attention heads, temperature ${temperature.toFixed(3)}, positional encoding ${usePositional ? "enabled" : "disabled"}, and ${causalMask ? "causal masking" : "no masking"}, the average attention entropy is ${data.avgEntropy.toFixed(3)} and sparsity is ${data.sparsity.sparsity.toFixed(3)}. The head diversity score is ${data.diversity.toFixed(3)}. The strongest attention pair is ${data.strongest.query} -> ${data.strongest.key} (${data.strongest.value.toFixed(3)}).`;
+  const summary = `The input sentence contains ${tokens.length} tokens with d_model=${dModel}. Using ${activeNumHeads} attention heads, temperature ${temperature.toFixed(3)}, positional encoding ${usePositional ? "enabled" : "disabled"}, and ${causalMask ? "causal masking" : "no masking"}, the average attention entropy is ${data.avgEntropy.toFixed(3)} and sparsity is ${data.sparsity.sparsity.toFixed(3)}. The head diversity score is ${data.diversity.toFixed(3)}. The strongest attention pair is ${data.strongest.query} -> ${data.strongest.key} (${data.strongest.value.toFixed(3)}).`;
 
   const topNavHeight = 86;
 
@@ -242,7 +252,7 @@ export default function App() {
           onToggle={() => setSidebarOpen((value) => !value)}
           section={sidebarSection}
           onSectionChange={setSidebarSection}
-          controls={{ tokenText, temperature, dModel, numHeads, usePositional, causalMask }}
+          controls={{ tokenText, temperature, dModel, numHeads: activeNumHeads, headOptions: validHeadOptions, usePositional, causalMask }}
           onControlsChange={(changes) => {
             if (changes.tokenText !== undefined) setTokenText(changes.tokenText);
             if (changes.temperature !== undefined) setTemperature(changes.temperature);
@@ -270,7 +280,7 @@ export default function App() {
                 <StatCard label="Tokens" value={tokens.length} />
                 <StatCard label="d_model" value={dModel} />
                 <StatCard label="Temperature" value={temperature.toFixed(2)} />
-                <StatCard label="Heads" value={numHeads} />
+                <StatCard label="Heads" value={activeNumHeads} />
                 <StatCard label="Avg entropy" value={data.avgEntropy.toFixed(3)} />
                 <StatCard label="Sparsity" value={data.sparsity.sparsity.toFixed(3)} />
                 <StatCard label="Diversity" value={data.diversity.toFixed(3)} />

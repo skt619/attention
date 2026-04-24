@@ -6,6 +6,7 @@ import {
   positionalEncoding,
   projectQKV,
   splitHeads,
+  validHeadOptionsForDModel,
 } from "./attentionMath.js";
 import {
   average,
@@ -59,28 +60,29 @@ function positionalEncodingComparison(tokens, dModel, temperature, causalMask) {
 }
 
 function headDiversity(tokens, dModel, temperature, headList, usePositional, causalMask) {
+  const validHeadList = validHeadOptionsForDModel(dModel, headList);
   const embed = makeTokenEmbeddings(tokens, dModel);
   const pe = positionalEncoding(tokens.length, dModel);
   const X = usePositional ? addMatrices(embed, pe) : embed;
   const { Q, K, V } = projectQKV(X, dModel, 7);
   const mask = causalMask ? makeCausalMask(tokens.length) : null;
-  return headList.map((numHeads) => {
+  return validHeadList.map((numHeads) => {
     const qHeads = splitHeads(Q, numHeads);
     const kHeads = splitHeads(K, numHeads);
     const vHeads = splitHeads(V, numHeads);
-    const headWeights = qHeads.map((qh, idx) =>
-      attention(qh, kHeads[idx], vHeads[idx], { temperature, scale: true, mask }).weights
-    );
+    const headWeights = qHeads
+      .map((qh, idx) => attention(qh, kHeads[idx], vHeads[idx], { temperature, scale: true, mask }).weights)
+      .filter((weights) => weights.length);
     const similarity = headSimilarityMatrix(headWeights);
+    const offDiagonal = similarity.flat().filter((value, idx) => {
+      if (!similarity.length) return false;
+      const row = Math.floor(idx / similarity.length);
+      const col = idx % similarity.length;
+      return row !== col;
+    });
     return {
       heads: numHeads,
-      averageSimilarity: average(
-        similarity.flat().filter((value, idx) => {
-          const row = Math.floor(idx / similarity.length);
-          const col = idx % similarity.length;
-          return row !== col;
-        })
-      ),
+      averageSimilarity: average(offDiagonal),
       diversity: diversityScore(similarity),
       similarity,
     };

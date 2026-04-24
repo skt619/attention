@@ -8,30 +8,41 @@ const cardStyle = {
   padding: 18,
 };
 
-function StepItem({ title, index, active, onClick }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      style={{
-        width: "100%",
-        textAlign: "left",
-        padding: "12px 14px",
-        borderRadius: 12,
-        border: active ? "1px solid #22d3ee" : "1px solid #334155",
-        background: active ? "rgba(34,211,238,0.14)" : "rgba(15,23,42,0.8)",
-        color: "#e5eefc",
-        cursor: "pointer",
-        marginBottom: 10,
-      }}
-    >
-      <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 4 }}>
-        Step {index + 1}
-      </div>
-      <div style={{ fontWeight: 600 }}>{title}</div>
-    </button>
-  );
-}
+const fieldStyle = {
+  width: "100%",
+  borderRadius: 14,
+  border: "1px solid #334155",
+  background: "#020617",
+  color: "#e5eefc",
+  padding: "10px 12px",
+  fontSize: 14,
+};
+
+const tabButtonStyle = (active) => ({
+  display: "flex",
+  alignItems: "center",
+  gap: 10,
+  padding: "12px 14px",
+  borderRadius: 14,
+  border: active ? "1px solid #22d3ee" : "1px solid #334155",
+  background: active ? "rgba(34,211,238,0.14)" : "rgba(15,23,42,0.8)",
+  color: "#e5eefc",
+  cursor: "pointer",
+  fontWeight: 700,
+});
+
+const badgeStyle = {
+  display: "inline-grid",
+  placeItems: "center",
+  width: 26,
+  height: 26,
+  borderRadius: 8,
+  background: "rgba(34,211,238,0.1)",
+  color: "#67e8f9",
+  fontSize: 12,
+  fontWeight: 800,
+  flexShrink: 0,
+};
 
 export default function Sidebar({
   open,
@@ -66,13 +77,19 @@ export default function Sidebar({
           display: "flex",
           justifyContent: open ? "space-between" : "center",
           alignItems: "center",
-          marginBottom: 16,
-          gap: 8,
+          marginBottom: 18,
+          gap: 10,
         }}
       >
-        {open && <div style={{ fontWeight: 700, fontSize: 18 }}>Controls</div>}
+        {open && (
+          <div>
+            <div style={{ fontWeight: 800, fontSize: 18 }}>Attention Lab</div>
+            <div style={{ color: "#94a3b8", fontSize: 12, marginTop: 3 }}>Controls and math steps</div>
+          </div>
+        )}
         <button
           type="button"
+          aria-label={open ? "Collapse sidebar" : "Expand sidebar"}
           onClick={onToggle}
           style={{
             padding: "10px 12px",
@@ -81,47 +98,25 @@ export default function Sidebar({
             background: "rgba(15,23,42,0.8)",
             color: "#e5eefc",
             cursor: "pointer",
-            fontWeight: 700,
+            fontWeight: 800,
             width: open ? "auto" : "100%",
           }}
         >
-          {open ? "←" : "→"}
+          {open ? "<" : ">"}
         </button>
       </div>
 
       {open ? (
         <>
-          <div style={cardStyle}>
-            <div style={{ display: "grid", gap: 12 }}>
-              <button
-                type="button"
-                onClick={() => onSectionChange("controls")}
-                style={{
-                  padding: "12px 14px",
-                  borderRadius: 14,
-                  border: section === "controls" ? "1px solid #22d3ee" : "1px solid #334155",
-                  background: section === "controls" ? "rgba(34,211,238,0.14)" : "rgba(15,23,42,0.8)",
-                  color: "#e5eefc",
-                  cursor: "pointer",
-                  fontWeight: 600,
-                }}
-              >
-                ⚙️ Controls
+          <div style={{ ...cardStyle, padding: 12 }}>
+            <div style={{ display: "grid", gap: 10 }}>
+              <button type="button" onClick={() => onSectionChange("controls")} style={tabButtonStyle(section === "controls")}>
+                <span style={badgeStyle}>C</span>
+                <span>Controls</span>
               </button>
-              <button
-                type="button"
-                onClick={() => onSectionChange("math")}
-                style={{
-                  padding: "12px 14px",
-                  borderRadius: 14,
-                  border: section === "math" ? "1px solid #22d3ee" : "1px solid #334155",
-                  background: section === "math" ? "rgba(34,211,238,0.14)" : "rgba(15,23,42,0.8)",
-                  color: "#e5eefc",
-                  cursor: "pointer",
-                  fontWeight: 600,
-                }}
-              >
-                📘 Math Steps
+              <button type="button" onClick={() => onSectionChange("math")} style={tabButtonStyle(section === "math")}>
+                <span style={badgeStyle}>M</span>
+                <span>Math Steps</span>
               </button>
             </div>
           </div>
@@ -129,31 +124,13 @@ export default function Sidebar({
           {section === "controls" && (
             <div style={{ marginTop: 18, display: "grid", gap: 16 }}>
               <div style={cardStyle}>
-                <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-                  Input tokens
-                </label>
-                <input
-                  value={controls.tokenText}
-                  onChange={(e) => onControlsChange({ tokenText: e.target.value })}
-                  style={{
-                    width: "100%",
-                    borderRadius: 14,
-                    border: "1px solid #334155",
-                    background: "#020617",
-                    color: "#e5eefc",
-                    padding: "10px 12px",
-                    fontSize: 14,
-                  }}
-                />
-                <div style={{ color: "#94a3b8", marginTop: 8 }}>
-                  Separate tokens with commas.
-                </div>
+                <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>Input tokens</label>
+                <input value={controls.tokenText} onChange={(e) => onControlsChange({ tokenText: e.target.value })} style={fieldStyle} />
+                <div style={{ color: "#94a3b8", marginTop: 8 }}>Separate tokens with commas.</div>
               </div>
 
               <div style={cardStyle}>
-                <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-                  Temperature
-                </label>
+                <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>Temperature</label>
                 <input
                   type="range"
                   min="0.25"
@@ -171,14 +148,8 @@ export default function Sidebar({
               </div>
 
               <div style={cardStyle}>
-                <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-                  d_model
-                </label>
-                <select
-                  value={controls.dModel}
-                  onChange={(e) => onControlsChange({ dModel: Number(e.target.value) })}
-                  style={{ width: "100%", borderRadius: 14, border: "1px solid #334155", background: "#020617", color: "#e5eefc", padding: "10px 12px" }}
-                >
+                <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>d_model</label>
+                <select value={controls.dModel} onChange={(e) => onControlsChange({ dModel: Number(e.target.value) })} style={fieldStyle}>
                   <option value={4}>4</option>
                   <option value={8}>8</option>
                   <option value={12}>12</option>
@@ -187,18 +158,11 @@ export default function Sidebar({
               </div>
 
               <div style={cardStyle}>
-                <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-                  Heads
-                </label>
-                <select
-                  value={controls.numHeads}
-                  onChange={(e) => onControlsChange({ numHeads: Number(e.target.value) })}
-                  style={{ width: "100%", borderRadius: 14, border: "1px solid #334155", background: "#020617", color: "#e5eefc", padding: "10px 12px" }}
-                >
-                  <option value={1}>1</option>
-                  <option value={2}>2</option>
-                  <option value={4}>4</option>
-                  <option value={8}>8</option>
+                <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>Heads</label>
+                <select value={controls.numHeads} onChange={(e) => onControlsChange({ numHeads: Number(e.target.value) })} style={fieldStyle}>
+                  {(controls.headOptions?.length ? controls.headOptions : [1]).map((heads) => (
+                    <option key={heads} value={heads}>{heads}</option>
+                  ))}
                 </select>
               </div>
 
@@ -211,9 +175,7 @@ export default function Sidebar({
                   />
                   Add positional encoding
                 </label>
-                <div style={{ color: "#94a3b8", marginTop: 8 }}>
-                  Self-attention requires token order information.
-                </div>
+                <div style={{ color: "#94a3b8", marginTop: 8 }}>Self-attention requires token order information.</div>
               </div>
 
               <div style={cardStyle}>
@@ -225,23 +187,15 @@ export default function Sidebar({
                   />
                   Causal attention mask
                 </label>
-                <div style={{ color: "#94a3b8", marginTop: 8 }}>
-                  No token can attend to future tokens.
-                </div>
+                <div style={{ color: "#94a3b8", marginTop: 8 }}>No token can attend to future tokens.</div>
               </div>
 
               <div style={cardStyle}>
                 <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
-                  <input
-                    type="checkbox"
-                    checked={beginnerMode}
-                    onChange={(e) => onBeginnerToggle(e.target.checked)}
-                  />
+                  <input type="checkbox" checked={beginnerMode} onChange={(e) => onBeginnerToggle(e.target.checked)} />
                   Beginner explanation mode
                 </label>
-                <div style={{ color: "#94a3b8", marginTop: 8 }}>
-                  Use simpler explanations and step guidance.
-                </div>
+                <div style={{ color: "#94a3b8", marginTop: 8 }}>Use simpler explanations and step guidance.</div>
               </div>
             </div>
           )}
@@ -274,7 +228,11 @@ export default function Sidebar({
         <div style={{ display: "grid", gap: 10 }}>
           <button
             type="button"
-            onClick={() => onToggle()}
+            aria-label="Open controls"
+            onClick={() => {
+              onSectionChange("controls");
+              onToggle();
+            }}
             style={{
               width: "100%",
               padding: "12px 0",
@@ -284,13 +242,18 @@ export default function Sidebar({
               color: "#e5eefc",
               cursor: "pointer",
               fontSize: 20,
+              fontWeight: 800,
             }}
           >
-            ⚙
+            C
           </button>
           <button
             type="button"
-            onClick={() => onSectionChange("math")}
+            aria-label="Open math steps"
+            onClick={() => {
+              onSectionChange("math");
+              onToggle();
+            }}
             style={{
               width: "100%",
               padding: "12px 0",
@@ -300,9 +263,10 @@ export default function Sidebar({
               color: "#e5eefc",
               cursor: "pointer",
               fontSize: 20,
+              fontWeight: 800,
             }}
           >
-            📘
+            M
           </button>
         </div>
       )}

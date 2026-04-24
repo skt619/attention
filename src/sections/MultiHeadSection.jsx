@@ -3,6 +3,9 @@ import SectionCard from "../components/SectionCard.jsx";
 import HeatmapPanel from "../components/HeatmapPanel.jsx";
 
 export default function MultiHeadSection({ tokens, headResults, headSimilarity, diversity, beginnerMode }) {
+  const safeHeadResults = Array.isArray(headResults) ? headResults : [];
+  const safeDiversity = Number.isFinite(diversity) ? diversity : 0;
+
   return (
     <SectionCard
       title="Multi-Head Attention Comparison"
@@ -15,7 +18,7 @@ export default function MultiHeadSection({ tokens, headResults, headSimilarity, 
     >
       <div style={{ display: "grid", gap: 24 }}>
         <div style={{ color: "#cbd5e1", fontSize: 14 }}>
-          Diversity score: <strong style={{ color: "#67e8f9" }}>{diversity.toFixed(3)}</strong>
+          Diversity score: <strong style={{ color: "#67e8f9" }}>{safeDiversity.toFixed(3)}</strong>
         </div>
         <div
           className="chart-grid"
@@ -25,9 +28,9 @@ export default function MultiHeadSection({ tokens, headResults, headSimilarity, 
             gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
           }}
         >
-          {headResults.map((head, index) => {
+          {safeHeadResults.map((head, index) => {
             const topAttention = [];
-            head.weights.forEach((row, i) => {
+            (head.weights || []).forEach((row, i) => {
               row.forEach((value, j) => {
                 topAttention.push({ i, j, value });
               });
@@ -67,12 +70,18 @@ export default function MultiHeadSection({ tokens, headResults, headSimilarity, 
           })}
         </div>
 
+        {!safeHeadResults.length && (
+          <div style={{ color: "#cbd5e1", fontSize: 14 }}>
+            No valid attention heads are available for the current d_model/head configuration.
+          </div>
+        )}
+
         {headSimilarity?.length > 1 && (
           <HeatmapPanel
             title="Head similarity matrix"
             z={headSimilarity}
-            xLabels={headResults.map((_, index) => `H${index + 1}`)}
-            yLabels={headResults.map((_, index) => `H${index + 1}`)}
+            xLabels={safeHeadResults.map((_, index) => `H${index + 1}`)}
+            yLabels={safeHeadResults.map((_, index) => `H${index + 1}`)}
             valueLabel="similarity"
             expandable
           />

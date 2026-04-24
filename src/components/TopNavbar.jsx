@@ -13,6 +13,7 @@ export default function TopNavbar({ items, activeId, onNavigate }) {
         borderBottom: "1px solid rgba(51,65,85,0.85)",
         background: "rgba(7,12,26,0.96)",
         backdropFilter: "blur(10px)",
+        boxShadow: "0 14px 28px rgba(2,6,23,0.42)",
         padding: "10px 18px 12px",
       }}
     >
