@@ -1,52 +1,87 @@
 const mathSteps = [
   {
     title: "Token embeddings",
-    formula: "X ∈ R^{n × d_model}",
+    sectionId: "input-embeddings",
+    formulas: [String.raw`X \in \mathbb{R}^{n \times d_{\text{model}}}`],
     explanation:
-      "Each token is represented by a numerical vector. Attention does not operate directly on words; it operates on vectors.",
+      "Each token becomes a vector of length d_model. The matrix X stacks those token vectors row by row.",
+    beginnerExplanation: "Each word becomes a row of numbers.",
+    lookFor: "See the base embedding matrix and the highlighted selected-token row.",
   },
   {
     title: "Positional encoding",
-    formula:
-      "X_input = X + P\n\nP(pos, 2i) = sin(pos / 10000^{2i/d_model})\nP(pos, 2i+1) = cos(pos / 10000^{2i/d_model})",
+    sectionId: "positional-encoding",
+    formulas: [
+      String.raw`X_{\text{input}} = X + PE`,
+      String.raw`PE(pos,2i)=\sin\left(\frac{pos}{10000^{2i/d_{\text{model}}}}\right)`,
+      String.raw`PE(pos,2i+1)=\cos\left(\frac{pos}{10000^{2i/d_{\text{model}}}}\right)`,
+    ],
     explanation:
-      "Self-attention alone cannot distinguish the order of tokens. Positional encoding injects sequence position into the embeddings.",
+      "Positional encoding injects order information into token representations before Q, K, and V are computed.",
+    beginnerExplanation: "This adds word-order information so the model can tell first, middle, and last tokens apart.",
+    lookFor: "Compare X with X_input and the positional encoding matrix.",
   },
   {
     title: "Query, Key, Value",
-    formula: "Q = X_input W_Q\nK = X_input W_K\nV = X_input W_V",
+    sectionId: "qkv",
+    formulas: [
+      String.raw`Q = X_{\text{input}} W_Q,\quad K = X_{\text{input}} W_K,\quad V = X_{\text{input}} W_V`,
+    ],
     explanation:
-      "Queries ask what a token is looking for, keys describe what each token offers to match, and values carry the information that is passed to the next layer.",
+      "Q asks what a token is looking for, K describes what a token offers, and V carries the information that will be mixed.",
+    beginnerExplanation: "Queries search, keys match, and values carry the information forward.",
+    lookFor: "Watch the selected token stay highlighted across Q, K, and V.",
   },
   {
     title: "Raw dot-product scores",
-    formula: "S = Q K^T",
+    sectionId: "raw-scores",
+    formulas: [String.raw`S = QK^T`, String.raw`S_{ij} = q_i \cdot k_j`],
     explanation:
-      "Each entry S_ij is the dot product between query i and key j. It measures raw similarity before scaling and normalization.",
+      "Each query token is compared against every key token using a dot product.",
+    beginnerExplanation: "This compares every token with every other token.",
+    lookFor: "Use the raw score heatmap and table to inspect one query-key match.",
   },
   {
     title: "Scaled attention scores",
-    formula: "S_tilde = S / sqrt(d_k)",
+    sectionId: "scaled-scores",
+    formulas: [String.raw`\tilde{S} = \frac{QK^T}{\sqrt{d_k}}`],
     explanation:
-      "Scaling keeps the raw scores from growing too large with dimensionality. It helps softmax produce stable distributions.",
+      "Scaling prevents large dot products from making softmax too extreme.",
+    beginnerExplanation: "This shrinks large scores so the next step behaves more smoothly.",
+    lookFor: "Compare raw and scaled heatmaps side by side.",
   },
   {
     title: "Softmax attention weights",
-    formula: "A_ij = exp(S_tilde_ij) / sum_m exp(S_tilde_im)",
+    sectionId: "attention-weights",
+    formulas: [
+      String.raw`A = \operatorname{softmax}(\tilde{S})`,
+      String.raw`A = \operatorname{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)`,
+    ],
     explanation:
-      "Softmax turns each row of scores into a probability distribution. Each query attends to all keys with non-negative weights that sum to one.",
+      "Softmax turns each score row into probabilities that sum to 1.",
+    beginnerExplanation: "This turns scores into probabilities.",
+    lookFor: "Watch how the selected token's attention row sums to 1.",
   },
   {
     title: "Weighted output",
-    formula: "O = A V",
+    sectionId: "attention-output",
+    formulas: [String.raw`O = AV`, String.raw`o_i = \sum_j A_{ij}v_j`],
     explanation:
-      "The output vector for each token is the weighted sum of value vectors, with weights given by the attention probabilities.",
+      "The output vector for each token is a weighted combination of value vectors.",
+    beginnerExplanation: "This mixes information from all tokens using the attention weights.",
+    lookFor: "Use the contribution chart to see which value vectors shape the selected output.",
   },
   {
     title: "Multi-head attention",
-    formula: "head_h = softmax(Q_h K_h^T / sqrt(d_k)) V_h\nMultiHead = Concat(head_1, ..., head_H)",
+    sectionId: "multi-head",
+    formulas: [
+      String.raw`\text{head}_h = \operatorname{Attention}(Q_h,K_h,V_h)`,
+      String.raw`\operatorname{MultiHead}(Q,K,V)=\operatorname{Concat}(\text{head}_1,\dots,\text{head}_H)W_O`,
+    ],
     explanation:
-      "Separate attention heads can focus on different relationships. The outputs are concatenated so the model can combine diverse signals.",
+      "Multiple heads let the model learn different token relationships in parallel.",
+    beginnerExplanation: "Several attention heads can notice different patterns at the same time.",
+    lookFor: "Compare per-head heatmaps and the head similarity matrix.",
   },
 ];
 

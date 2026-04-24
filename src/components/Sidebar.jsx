@@ -1,5 +1,6 @@
 import React from "react";
 import mathSteps from "../data/mathSteps.js";
+import LatexBlock from "./LatexBlock.jsx";
 
 const cardStyle = {
   background: "rgba(15,23,42,0.95)",
@@ -56,6 +57,13 @@ const collapsedButtonStyle = {
   fontSize: 12,
   fontWeight: 800,
   lineHeight: 1.15,
+};
+
+const scrollToSection = (sectionId) => {
+  const el = document.getElementById(sectionId);
+  if (el) {
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 };
 
 export default function Sidebar({
@@ -217,23 +225,75 @@ export default function Sidebar({
           {section === "math" && (
             <div style={{ marginTop: 18, display: "grid", gap: 12 }}>
               {mathSteps.map((step, index) => (
-                <button
-                  type="button"
+                <div
                   key={step.title}
-                  onClick={() => onStepChange(index)}
                   style={{
-                    textAlign: "left",
-                    padding: "12px 14px",
-                    borderRadius: 14,
                     border: activeStep === index ? "1px solid #22d3ee" : "1px solid #334155",
+                    borderRadius: 14,
                     background: activeStep === index ? "rgba(34,211,238,0.14)" : "rgba(15,23,42,0.8)",
-                    color: "#e5eefc",
-                    cursor: "pointer",
+                    overflow: "hidden",
                   }}
                 >
-                  <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 4 }}>Step {index + 1}</div>
-                  <div style={{ fontWeight: 600 }}>{step.title}</div>
-                </button>
+                  <button
+                    type="button"
+                    aria-expanded={activeStep === index}
+                    onClick={() => {
+                      onStepChange(index);
+                      scrollToSection(step.sectionId);
+                    }}
+                    style={{
+                      width: "100%",
+                      textAlign: "left",
+                      padding: "12px 14px",
+                      border: 0,
+                      background: "transparent",
+                      color: "#e5eefc",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
+                      <div>
+                        <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 4 }}>Step {index + 1}</div>
+                        <div style={{ fontWeight: 700 }}>{step.title}</div>
+                      </div>
+                      <span style={{ color: "#67e8f9", fontWeight: 900 }}>{activeStep === index ? "-" : "+"}</span>
+                    </div>
+                  </button>
+
+                  {activeStep === index && (
+                    <div
+                      style={{
+                        display: "grid",
+                        gap: 12,
+                        padding: "0 14px 14px",
+                        color: "#cbd5e1",
+                        fontSize: 13,
+                        lineHeight: 1.55,
+                      }}
+                    >
+                      <div style={{ display: "grid", gap: 8 }}>
+                        {step.formulas.map((formula) => (
+                          <LatexBlock key={formula} formula={formula} />
+                        ))}
+                      </div>
+                      <div>{step.explanation}</div>
+                      {beginnerMode && (
+                        <div
+                          style={{
+                            border: "1px solid rgba(34,211,238,0.24)",
+                            background: "rgba(34,211,238,0.08)",
+                            borderRadius: 12,
+                            padding: "9px 10px",
+                            color: "#dffbff",
+                          }}
+                        >
+                          {step.beginnerExplanation}
+                        </div>
+                      )}
+                      <div style={{ color: "#94a3b8" }}>{step.lookFor}</div>
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
           )}
