@@ -37,16 +37,17 @@ export default function ScaledScoreSection({ tokens, rawScores, scaledScores, Q,
   const selectedQVector = Q[selectedPair.query] || [];
   const selectedKVector = K[selectedPair.key] || [];
   const dotProduct = selectedQVector.reduce((sum, q, idx) => sum + q * (selectedKVector[idx] ?? 0), 0);
-  const dotTerms = selectedQVector.map((q, idx) => `${q.toFixed(3)}×${(selectedKVector[idx] ?? 0).toFixed(3)}`);
+  const dotTerms = selectedQVector.map((q, idx) => `${q.toFixed(3)} x ${(selectedKVector[idx] ?? 0).toFixed(3)}`);
 
   return (
     <SectionCard
       title="Scaled Attention Scores"
       subtitle={
         beginnerMode
-          ? "Scaling shrinks raw dot products so softmax produces stable attention."
-          : "S_tilde = QK^T / √d_k. Scaling prevents large dot products from producing extreme softmax distributions."
+          ? "This step shrinks large scores so softmax behaves more stably."
+          : "S_tilde = QK^T / sqrt(d_k). Scaling prevents large dot products from producing extreme softmax distributions."
       }
+      beginnerMode={beginnerMode}
     >
       <div style={{ display: "grid", gap: 18 }}>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
@@ -55,26 +56,27 @@ export default function ScaledScoreSection({ tokens, rawScores, scaledScores, Q,
           <button type="button" onClick={() => setView("both")} style={optionStyle(view === "both")}>Compare</button>
         </div>
 
-        <div style={{ display: "grid", gap: 24 }}>
+        <div className="chart-grid" style={{ display: "grid", gap: 24, gridTemplateColumns: view === "both" ? "repeat(auto-fit, minmax(340px, 1fr))" : "1fr" }}>
           {(view === "raw" || view === "both") && (
-            <div style={{ display: "grid", gap: 16 }}>
+            <div style={{ display: "grid", gap: 16, minWidth: 0 }}>
               <HeatmapPanel
-                title="Raw scores S = QKᵀ"
+                title="Raw scores S = QK^T"
                 z={rawScores}
                 xLabels={tokens}
                 yLabels={tokens}
                 valueLabel="score"
-                selectedRow={selectedPair.query}
+                selectedRow={selectedToken}
                 selectedCol={selectedPair.key}
                 onClick={handleHeatmapClick}
                 expandable
+                compact={view === "both"}
               />
               <MatrixTable
                 title="Raw score matrix"
                 tokens={tokens}
                 matrix={rawScores}
                 columnLabels={tokens}
-                selectedRow={selectedPair.query}
+                selectedRow={selectedToken}
                 selectedCol={selectedPair.key}
                 explanation="Each raw score is the dot product between a query and a key vector. Click a cell above to inspect it."
               />
@@ -82,24 +84,25 @@ export default function ScaledScoreSection({ tokens, rawScores, scaledScores, Q,
           )}
 
           {(view === "scaled" || view === "both") && (
-            <div style={{ display: "grid", gap: 16 }}>
+            <div style={{ display: "grid", gap: 16, minWidth: 0 }}>
               <HeatmapPanel
-                title="Scaled scores S_tilde = QKᵀ / √d_k"
+                title="Scaled scores S_tilde = QK^T / sqrt(d_k)"
                 z={scaledScores}
                 xLabels={tokens}
                 yLabels={tokens}
                 valueLabel="scaled"
-                selectedRow={selectedPair.query}
+                selectedRow={selectedToken}
                 selectedCol={selectedPair.key}
                 onClick={handleHeatmapClick}
                 expandable
+                compact={view === "both"}
               />
               <MatrixTable
                 title="Scaled score matrix"
                 tokens={tokens}
                 matrix={scaledScores}
                 columnLabels={tokens}
-                selectedRow={selectedPair.query}
+                selectedRow={selectedToken}
                 selectedCol={selectedPair.key}
                 explanation="These values are used to compute softmax attention weights. Click a cell above to inspect it."
               />
@@ -111,9 +114,7 @@ export default function ScaledScoreSection({ tokens, rawScores, scaledScores, Q,
           <div>
             Selected cell: query <strong>{tokens[selectedPair.query]}</strong> and key <strong>{tokens[selectedPair.key]}</strong>.
           </div>
-          <div>
-            Dot product: S = q_i · k_j = {dotProduct.toFixed(3)}
-          </div>
+          <div>Dot product: S = q_i dot k_j = {dotProduct.toFixed(3)}</div>
           <div style={{ whiteSpace: "pre-wrap" }}>
             {dotTerms.length
               ? `Expanded dot product: ${dotTerms.join(" + ")}`

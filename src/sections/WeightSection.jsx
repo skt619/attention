@@ -20,12 +20,13 @@ export default function WeightSection({ tokens, scaledScores, weights, selectedT
       title="Attention Weights"
       subtitle={
         beginnerMode
-          ? "Softmax turns each score row into probabilities that sum to one."
-          : "A = softmax((QK^T)/√d_k). Each row of A is a probability distribution over the keys for one query token."
+          ? "Softmax turns each row into probabilities that add to 1."
+          : "A = softmax((QK^T)/sqrt(d_k)). Each row of A is a probability distribution over the keys for one query token."
       }
+      beginnerMode={beginnerMode}
     >
       <div style={{ display: "grid", gap: 24 }}>
-        <div style={{ display: "grid", gap: 18 }}>
+        <div className="chart-grid" style={{ display: "grid", gap: 18, gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))" }}>
           <HeatmapPanel
             title="Scaled attention scores"
             z={scaledScores}
@@ -33,7 +34,9 @@ export default function WeightSection({ tokens, scaledScores, weights, selectedT
             yLabels={tokens}
             valueLabel="score"
             selectedRow={selectedToken}
+            selectedCol={selectedToken}
             expandable
+            compact
           />
           <HeatmapPanel
             title="Attention weight matrix A"
@@ -42,7 +45,9 @@ export default function WeightSection({ tokens, scaledScores, weights, selectedT
             yLabels={tokens}
             valueLabel="weight"
             selectedRow={selectedToken}
+            selectedCol={selectedToken}
             expandable
+            compact
           />
         </div>
         <div style={{ display: "grid", gap: 18 }}>

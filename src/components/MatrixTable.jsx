@@ -55,16 +55,23 @@ export default function MatrixTable({ title, tokens, matrix, explanation, column
             {rows.map((row, rowIndex) => (
               <tr
                 key={rowIndex}
-                style={selectedRow === rowIndex ? { background: "rgba(34,211,238,0.12)" } : {}}
+                style={
+                  selectedRow === rowIndex
+                    ? { background: "rgba(34,211,238,0.14)", boxShadow: "inset 3px 0 0 #22d3ee" }
+                    : {}
+                }
               >
                 {headers.map((header, headerIndex) => {
                   const isSelectedCell = selectedCol !== undefined && headerIndex === selectedCol + 1;
+                  const isSelectedRowLabel = selectedRow === rowIndex && headerIndex === 0;
                   return (
                     <td
                       key={header}
                       style={
                         isSelectedCell
-                          ? { ...tdStyle, background: "rgba(34,211,238,0.08)" }
+                          ? { ...tdStyle, background: "rgba(34,211,238,0.12)", color: "#ffffff", fontWeight: 700 }
+                          : isSelectedRowLabel
+                            ? { ...tdStyle, color: "#67e8f9", fontWeight: 700 }
                           : tdStyle
                       }
                     >

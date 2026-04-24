@@ -16,3 +16,37 @@ body,
   min-height: 100vh;
   background: #020617;
 }
+
+html {
+  scroll-behavior: smooth;
+}
+
+.top-navbar__inner::-webkit-scrollbar {
+  height: 8px;
+}
+
+.top-navbar__inner::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 999px;
+}
+
+.chart-grid,
+.two-column-grid {
+  min-width: 0;
+}
+
+@media (max-width: 760px) {
+  .top-navbar {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+
+  .top-navbar__inner {
+    flex-wrap: nowrap;
+  }
+
+  .chart-grid,
+  .two-column-grid {
+    grid-template-columns: 1fr !important;
+  }
+}

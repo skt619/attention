@@ -10,6 +10,13 @@ const panelStyle = {
   padding: 20,
 };
 
+const subPanelStyle = {
+  background: "rgba(15,23,42,0.9)",
+  border: "1px solid #334155",
+  borderRadius: 16,
+  padding: 16,
+};
+
 export default function TokenInspector({ selectedIndex, tokens, data, temperature, causalMask }) {
   const rawRow = data.attention.rawScores[selectedIndex] || [];
   const scaledRow = data.attention.scaledScores[selectedIndex] || [];
@@ -50,7 +57,7 @@ export default function TokenInspector({ selectedIndex, tokens, data, temperatur
 
       <div style={{ display: "grid", gap: 18, marginBottom: 18 }}>
         <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
-          <div style={{ background: "rgba(15,23,42,0.9)", border: "1px solid #334155", borderRadius: 16, padding: 14 }}>
+          <div style={subPanelStyle}>
             <div style={{ color: "#94a3b8", marginBottom: 8 }}>Current token</div>
             <div style={{ color: "#e2e8f0", fontSize: 14, lineHeight: 1.7 }}>
               <strong>{tokens[selectedIndex]}</strong>
@@ -59,67 +66,41 @@ export default function TokenInspector({ selectedIndex, tokens, data, temperatur
               <br />Masking: {causalMask ? "Causal" : "None"}
             </div>
           </div>
-          <div style={{ background: "rgba(15,23,42,0.9)", border: "1px solid #334155", borderRadius: 16, padding: 14 }}>
+          <div style={subPanelStyle}>
             <div style={{ color: "#94a3b8", marginBottom: 8 }}>Top attended tokens</div>
             {topAttended.map((item, rank) => (
-              <div key={item.token} style={{ color: "#e2e8f0", fontSize: 14, marginBottom: 6 }}>
-                <strong>{rank + 1}.</strong> {item.token} — {formatNum(item.weight)}
+              <div key={`${item.token}-${item.index}`} style={{ color: "#e2e8f0", fontSize: 14, marginBottom: 6 }}>
+                <strong>{rank + 1}.</strong> {item.token} - {formatNum(item.weight)}
               </div>
             ))}
           </div>
         </div>
 
         <div style={{ display: "grid", gap: 18, gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))" }}>
-          <MatrixTable
-            title="Raw score row"
-            tokens={[tokens[selectedIndex]]}
-            matrix={[rawRow]}
-            columnLabels={tokens}
-          />
-          <MatrixTable
-            title="Scaled score row"
-            tokens={[tokens[selectedIndex]]}
-            matrix={[scaledRow]}
-            columnLabels={tokens}
-          />
-          <MatrixTable
-            title="Softmax probability row"
-            tokens={[tokens[selectedIndex]]}
-            matrix={[probabilityRow]}
-            columnLabels={tokens}
-          />
+          <MatrixTable title="Raw score row" tokens={[tokens[selectedIndex]]} matrix={[rawRow]} columnLabels={tokens} />
+          <MatrixTable title="Scaled score row" tokens={[tokens[selectedIndex]]} matrix={[scaledRow]} columnLabels={tokens} />
+          <MatrixTable title="Softmax probability row" tokens={[tokens[selectedIndex]]} matrix={[probabilityRow]} columnLabels={tokens} />
         </div>
       </div>
 
       <div style={{ display: "grid", gap: 18 }}>
         <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))" }}>
-          <MatrixTable
-            title="Query vector"
-            tokens={[tokens[selectedIndex]]}
-            matrix={[data.Q[selectedIndex]]}
-          />
-          <MatrixTable
-            title="Key vector"
-            tokens={[tokens[selectedIndex]]}
-            matrix={[data.K[selectedIndex]]}
-          />
-          <MatrixTable
-            title="Value vector"
-            tokens={[tokens[selectedIndex]]}
-            matrix={[data.V[selectedIndex]]}
-          />
+          <MatrixTable title="Query vector" tokens={[tokens[selectedIndex]]} matrix={[data.Q[selectedIndex]]} />
+          <MatrixTable title="Key vector" tokens={[tokens[selectedIndex]]} matrix={[data.K[selectedIndex]]} />
+          <MatrixTable title="Value vector" tokens={[tokens[selectedIndex]]} matrix={[data.V[selectedIndex]]} />
         </div>
 
-        <div style={{ display: "grid", gap: 18, gridTemplateColumns: "1fr 1fr" }}>
-          <MatrixTable
-            title="Selected output vector"
-            tokens={[tokens[selectedIndex]]}
-            matrix={[outputVector]}
-          />
-          <div style={{ background: "rgba(15,23,42,0.9)", border: "1px solid #334155", borderRadius: 16, padding: 16 }}>
+        <div className="two-column-grid" style={{ display: "grid", gap: 18, gridTemplateColumns: "minmax(280px, 1fr) minmax(320px, 1fr)" }}>
+          <div style={subPanelStyle}>
+            <MatrixTable title="Selected output vector" tokens={[tokens[selectedIndex]]} matrix={[outputVector]} />
+            <div style={{ color: "#cbd5e1", fontSize: 14, lineHeight: 1.6, marginTop: 12 }}>
+              This is the final vector for <strong>{tokens[selectedIndex]}</strong> after attention mixes value vectors from all source tokens.
+            </div>
+          </div>
+          <div style={subPanelStyle}>
             <div style={{ color: "#94a3b8", marginBottom: 8 }}>Contribution metric</div>
             <div style={{ color: "#cbd5e1", fontSize: 14, marginBottom: 12 }}>
-              Each bar shows token attention strength weighted by the value vector norm: weight × ‖v_j‖.
+              Each bar estimates how much a source token contributes using attention weight times the size of its value vector.
             </div>
             <BarChartPanel
               title="Output contribution norm"

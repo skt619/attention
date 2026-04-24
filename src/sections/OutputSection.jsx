@@ -25,9 +25,10 @@ export default function OutputSection({ tokens, weights, V, output, selectedToke
       title="Attention Output"
       subtitle={
         beginnerMode
-          ? "Each token output is the weighted sum of value vectors using attention weights."
+          ? "This combines value vectors using the attention weights."
           : "O = A V. Each output vector o_i is a sum of the value vectors weighted by attention from query token i."
       }
+      beginnerMode={beginnerMode}
     >
       <div style={{ display: "grid", gap: 24 }}>
         <MatrixTable
@@ -35,6 +36,7 @@ export default function OutputSection({ tokens, weights, V, output, selectedToke
           tokens={tokens}
           matrix={V}
           explanation="Value vectors are combined by attention weights to create the output."
+          selectedRow={selectedToken}
         />
         <MatrixTable
           title="Output O = A V"

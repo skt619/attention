@@ -17,6 +17,7 @@ export default function TokenBlocks({ tokens, selectedIndex, onSelect }) {
             minWidth: 80,
             textAlign: "left",
             fontWeight: 600,
+            boxShadow: selectedIndex === index ? "0 0 0 4px rgba(34,211,238,0.08)" : "none",
           }}
         >
           <div style={{ fontSize: 14 }}>{token}</div>

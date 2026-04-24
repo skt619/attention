@@ -11,6 +11,7 @@ export default function EmbeddingSection({ tokens, embed, inputX, usePositional,
           ? "Each token starts as a raw embedding vector. When enabled, position encoding changes the input so attention knows the order of words."
           : "X is the base embedding matrix. X_input = X + PE when positional encoding is enabled, otherwise X_input = X."
       }
+      beginnerMode={beginnerMode}
     >
       <div style={{ display: "grid", gap: 24 }}>
         <MatrixTable

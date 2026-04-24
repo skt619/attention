@@ -44,6 +44,7 @@ export default function Sidebar({
   onBeginnerToggle,
   activeStep,
   onStepChange,
+  topOffset = 0,
 }) {
   return (
     <div
@@ -54,8 +55,8 @@ export default function Sidebar({
         background: "rgba(2,6,23,0.96)",
         padding: 16,
         position: "sticky",
-        top: 0,
-        height: "100vh",
+        top: topOffset,
+        height: `calc(100vh - ${topOffset}px)`,
         overflowY: "auto",
         flexShrink: 0,
       }}

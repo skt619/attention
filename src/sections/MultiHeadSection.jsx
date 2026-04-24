@@ -2,7 +2,7 @@ import React from "react";
 import SectionCard from "../components/SectionCard.jsx";
 import HeatmapPanel from "../components/HeatmapPanel.jsx";
 
-export default function MultiHeadSection({ tokens, headResults, headSimilarity, beginnerMode }) {
+export default function MultiHeadSection({ tokens, headResults, headSimilarity, diversity, beginnerMode }) {
   return (
     <SectionCard
       title="Multi-Head Attention Comparison"
@@ -11,13 +11,18 @@ export default function MultiHeadSection({ tokens, headResults, headSimilarity, 
           ? "Each head computes attention in a different subspace so the model can capture multiple relationships at once."
           : "Compare attention patterns for each head and how similar the head distributions are to each other."
       }
+      beginnerMode={beginnerMode}
     >
       <div style={{ display: "grid", gap: 24 }}>
+        <div style={{ color: "#cbd5e1", fontSize: 14 }}>
+          Diversity score: <strong style={{ color: "#67e8f9" }}>{diversity.toFixed(3)}</strong>
+        </div>
         <div
+          className="chart-grid"
           style={{
             display: "grid",
             gap: 18,
-            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+            gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
           }}
         >
           {headResults.map((head, index) => {
@@ -31,7 +36,7 @@ export default function MultiHeadSection({ tokens, headResults, headSimilarity, 
             const top = topAttention.slice(0, 3);
 
             return (
-              <div key={index} style={{ display: "grid", gap: 12 }}>
+              <div key={index} style={{ display: "grid", gap: 12, minWidth: 0 }}>
                 <h3 style={{ margin: 0, color: "#e5eefc" }}>Head {index + 1}</h3>
                 <HeatmapPanel
                   title={`Head ${index + 1} attention`}
@@ -40,6 +45,7 @@ export default function MultiHeadSection({ tokens, headResults, headSimilarity, 
                   yLabels={tokens}
                   valueLabel="weight"
                   expandable
+                  compact
                 />
                 <div style={{ color: "#cbd5e1", fontSize: 14 }}>
                   Entropy: <strong>{head.entropy.toFixed(3)}</strong>
@@ -51,7 +57,7 @@ export default function MultiHeadSection({ tokens, headResults, headSimilarity, 
                   <ul style={{ margin: "8px 0 0 16px", padding: 0, listStyle: "disc" }}>
                     {top.map((item, rank) => (
                       <li key={`${item.i}-${item.j}`}>
-                        {rank + 1}. {tokens[item.i]} → {tokens[item.j]} ({item.value.toFixed(3)})
+                        {rank + 1}. {tokens[item.i]} -&gt; {tokens[item.j]} ({item.value.toFixed(3)})
                       </li>
                     ))}
                   </ul>

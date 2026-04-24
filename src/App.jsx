@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Sidebar from "./components/Sidebar.jsx";
+import TopNavbar from "./components/TopNavbar.jsx";
 import InputSection from "./sections/InputSection.jsx";
 import EmbeddingSection from "./sections/EmbeddingSection.jsx";
 import QKVSection from "./sections/QKVSection.jsx";
@@ -43,8 +44,8 @@ import "./index.css";
 
 const responsiveStatsGrid = {
   display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-  gap: 16,
+  gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+  gap: 12,
 };
 
 function StatCard({ label, value }) {
@@ -53,12 +54,12 @@ function StatCard({ label, value }) {
       style={{
         background: "rgba(15,23,42,0.85)",
         border: "1px solid #334155",
-        borderRadius: 20,
-        padding: 18,
+        borderRadius: 16,
+        padding: 14,
       }}
     >
-      <div style={{ color: "#cbd5e1", marginBottom: 8, fontSize: 14 }}>{label}</div>
-      <div style={{ fontSize: 28, fontWeight: 700, lineHeight: 1.1 }}>{value}</div>
+      <div style={{ color: "#cbd5e1", marginBottom: 8, fontSize: 13 }}>{label}</div>
+      <div style={{ fontSize: 22, fontWeight: 700, lineHeight: 1.15 }}>{value}</div>
     </div>
   );
 }
@@ -75,6 +76,7 @@ export default function App() {
   const [sidebarSection, setSidebarSection] = useState("controls");
   const [beginnerMode, setBeginnerMode] = useState(true);
   const [activeStep, setActiveStep] = useState(0);
+  const [activeSection, setActiveSection] = useState("input-tokens");
 
   const tokens = useMemo(() => tokensFromText(tokenText), [tokenText]);
 
@@ -173,6 +175,46 @@ export default function App() {
     return headDiversity(tokens, dModel, temperature, [1, 2, 4, 8], usePositional, causalMask);
   }, [data, tokens, dModel, temperature, usePositional, causalMask]);
 
+  const navItems = [
+    { id: "input-tokens", label: "Input Tokens" },
+    { id: "input-embeddings", label: "Input Embeddings" },
+    { id: "qkv", label: "Q/K/V" },
+    { id: "raw-scores", label: "Raw Scores" },
+    { id: "scaled-scores", label: "Scaled Scores" },
+    { id: "attention-weights", label: "Attention Weights" },
+    { id: "attention-output", label: "Attention Output" },
+    { id: "multi-head", label: "Multi-Head" },
+    { id: "temperature", label: "Temperature" },
+    { id: "positional-encoding", label: "Positional Encoding" },
+    { id: "masked-attention", label: "Masked Attention" },
+    { id: "experiment-mode", label: "Experiment Mode" },
+    { id: "research-summary", label: "Research Summary" },
+  ];
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visibleEntries = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+        if (visibleEntries.length > 0) {
+          setActiveSection(visibleEntries[0].target.id);
+        }
+      },
+      {
+        rootMargin: "-96px 0px -60% 0px",
+        threshold: [0.1, 0.4, 0.7],
+      }
+    );
+
+    navItems.forEach((item) => {
+      const el = document.getElementById(item.id);
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, [navItems]);
+
   if (!data) {
     return (
       <div style={{ color: "white", padding: 30 }}>
@@ -181,13 +223,22 @@ export default function App() {
     );
   }
 
-  const summary = `The input sentence contains ${tokens.length} tokens with d_model=${dModel}. Using ${numHeads} attention heads, temperature ${temperature.toFixed(3)}, positional encoding ${usePositional ? "enabled" : "disabled"}, and ${causalMask ? "causal masking" : "no masking"}, the average attention entropy is ${data.avgEntropy.toFixed(3)} and sparsity is ${data.sparsity.sparsity.toFixed(3)}. The head diversity score is ${data.diversity.toFixed(3)}. The strongest attention pair is ${data.strongest.query} → ${data.strongest.key} (${data.strongest.value.toFixed(3)}).`;
+  const summary = `The input sentence contains ${tokens.length} tokens with d_model=${dModel}. Using ${numHeads} attention heads, temperature ${temperature.toFixed(3)}, positional encoding ${usePositional ? "enabled" : "disabled"}, and ${causalMask ? "causal masking" : "no masking"}, the average attention entropy is ${data.avgEntropy.toFixed(3)} and sparsity is ${data.sparsity.sparsity.toFixed(3)}. The head diversity score is ${data.diversity.toFixed(3)}. The strongest attention pair is ${data.strongest.query} -> ${data.strongest.key} (${data.strongest.value.toFixed(3)}).`;
+
+  const topNavHeight = 86;
 
   return (
     <div style={{ minHeight: "100vh", background: "radial-gradient(circle at top, #0f172a, #020617 55%)", color: "white", fontFamily: "Inter, system-ui, sans-serif" }}>
-      <div style={{ display: "flex", minHeight: "100vh" }}>
+      <TopNavbar items={navItems} activeId={activeSection} onNavigate={(id) => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }} />
+      <div style={{ display: "flex", minHeight: "100vh", paddingTop: topNavHeight }}>
         <Sidebar
           open={sidebarOpen}
+          topOffset={topNavHeight}
           onToggle={() => setSidebarOpen((value) => !value)}
           section={sidebarSection}
           onSectionChange={setSidebarSection}
@@ -223,96 +274,125 @@ export default function App() {
                 <StatCard label="Avg entropy" value={data.avgEntropy.toFixed(3)} />
                 <StatCard label="Sparsity" value={data.sparsity.sparsity.toFixed(3)} />
                 <StatCard label="Diversity" value={data.diversity.toFixed(3)} />
+                <StatCard label="Strongest pair" value={`${data.strongest.query} -> ${data.strongest.key}`} />
+                <StatCard label="Position" value={usePositional ? "Enabled" : "Disabled"} />
+                <StatCard label="Masking" value={causalMask ? "Causal" : "None"} />
               </div>
             </header>
 
             <div style={{ display: "grid", gap: 24 }}>
-              <InputSection
-                tokenText={tokenText}
-                onTokenTextChange={setTokenText}
-                tokens={tokens}
-                selectedToken={selectedToken}
-                onSelectToken={setSelectedToken}
-                beginnerMode={beginnerMode}
-              />
-              <TokenInspector
-                selectedIndex={selectedToken}
-                tokens={tokens}
-                data={data}
-                temperature={temperature}
-                causalMask={causalMask}
-              />
-              <EmbeddingSection
-                tokens={tokens}
-                embed={data.embed}
-                inputX={data.X}
-                usePositional={usePositional}
-                selectedToken={selectedToken}
-                beginnerMode={beginnerMode}
-              />
-              <QKVSection
-                tokens={tokens}
-                inputX={data.X}
-                Q={data.Q}
-                K={data.K}
-                V={data.V}
-                beginnerMode={beginnerMode}
-                selectedToken={selectedToken}
-              />
-              <ScoreSection
-                tokens={tokens}
-                rawScores={data.attention.rawScores}
-                Q={data.Q}
-                K={data.K}
-                selectedToken={selectedToken}
-                beginnerMode={beginnerMode}
-              />
-              <ScaledScoreSection
-                tokens={tokens}
-                rawScores={data.attention.rawScores}
-                scaledScores={data.attention.scaledScores}
-                Q={data.Q}
-                K={data.K}
-                selectedToken={selectedToken}
-                beginnerMode={beginnerMode}
-              />
-              <WeightSection
-                tokens={tokens}
-                scaledScores={data.attention.scaledScores}
-                weights={data.attention.weights}
-                selectedToken={selectedToken}
-                beginnerMode={beginnerMode}
-              />
-              <OutputSection
-                tokens={tokens}
-                weights={data.attention.weights}
-                V={data.V}
-                output={data.attention.output}
-                selectedToken={selectedToken}
-                beginnerMode={beginnerMode}
-              />
-              <MultiHeadSection tokens={tokens} headResults={data.headResults} headSimilarity={data.headSimilarity} beginnerMode={beginnerMode} />
-              <TemperatureSection experimentData={experimentData} beginnerMode={beginnerMode} />
-              <PositionalSection
-                tokens={tokens}
-                embeddingWithPos={addMatrices(data.embed, data.pe)}
-                positionalEncoding={data.pe}
-                positionalComparison={positionalComparison}
-                beginnerMode={beginnerMode}
-              />
-              <MaskSection
-                tokens={tokens}
-                unmaskedWeights={data.unmasked.weights}
-                maskedWeights={attention(data.Q, data.K, data.V, { temperature, scale: true, mask: makeCausalMask(tokens.length) }).weights}
-                beginnerMode={beginnerMode}
-              />
-              <ExperimentSection
-                temperatureData={experimentData}
-                positionalComparison={positionalComparison}
-                diversityData={diversityData}
-                beginnerMode={beginnerMode}
-              />
-              <SummarySection summary={summary} beginnerMode={beginnerMode} />
+              <div id="input-tokens" style={{ scrollMarginTop: "112px" }}>
+                <InputSection
+                  tokenText={tokenText}
+                  onTokenTextChange={setTokenText}
+                  tokens={tokens}
+                  selectedToken={selectedToken}
+                  onSelectToken={setSelectedToken}
+                  beginnerMode={beginnerMode}
+                />
+              </div>
+              <div id="input-embeddings" style={{ scrollMarginTop: "112px" }}>
+                <TokenInspector
+                  selectedIndex={selectedToken}
+                  tokens={tokens}
+                  data={data}
+                  temperature={temperature}
+                  causalMask={causalMask}
+                />
+                <EmbeddingSection
+                  tokens={tokens}
+                  embed={data.embed}
+                  inputX={data.X}
+                  usePositional={usePositional}
+                  selectedToken={selectedToken}
+                  beginnerMode={beginnerMode}
+                />
+              </div>
+              <div id="qkv" style={{ scrollMarginTop: "112px" }}>
+                <QKVSection
+                  tokens={tokens}
+                  inputX={data.X}
+                  Q={data.Q}
+                  K={data.K}
+                  V={data.V}
+                  beginnerMode={beginnerMode}
+                  selectedToken={selectedToken}
+                />
+              </div>
+              <div id="raw-scores" style={{ scrollMarginTop: "112px" }}>
+                <ScoreSection
+                  tokens={tokens}
+                  rawScores={data.attention.rawScores}
+                  Q={data.Q}
+                  K={data.K}
+                  selectedToken={selectedToken}
+                  beginnerMode={beginnerMode}
+                />
+              </div>
+              <div id="scaled-scores" style={{ scrollMarginTop: "112px" }}>
+                <ScaledScoreSection
+                  tokens={tokens}
+                  rawScores={data.attention.rawScores}
+                  scaledScores={data.attention.scaledScores}
+                  Q={data.Q}
+                  K={data.K}
+                  selectedToken={selectedToken}
+                  beginnerMode={beginnerMode}
+                />
+              </div>
+              <div id="attention-weights" style={{ scrollMarginTop: "112px" }}>
+                <WeightSection
+                  tokens={tokens}
+                  scaledScores={data.attention.scaledScores}
+                  weights={data.attention.weights}
+                  selectedToken={selectedToken}
+                  beginnerMode={beginnerMode}
+                />
+              </div>
+              <div id="attention-output" style={{ scrollMarginTop: "112px" }}>
+                <OutputSection
+                  tokens={tokens}
+                  weights={data.attention.weights}
+                  V={data.V}
+                  output={data.attention.output}
+                  selectedToken={selectedToken}
+                  beginnerMode={beginnerMode}
+                />
+              </div>
+              <div id="multi-head" style={{ scrollMarginTop: "112px" }}>
+                <MultiHeadSection tokens={tokens} headResults={data.headResults} headSimilarity={data.headSimilarity} diversity={data.diversity} beginnerMode={beginnerMode} />
+              </div>
+              <div id="temperature" style={{ scrollMarginTop: "112px" }}>
+                <TemperatureSection experimentData={experimentData} beginnerMode={beginnerMode} />
+              </div>
+              <div id="positional-encoding" style={{ scrollMarginTop: "112px" }}>
+                <PositionalSection
+                  tokens={tokens}
+                  embeddingWithPos={addMatrices(data.embed, data.pe)}
+                  positionalEncoding={data.pe}
+                  positionalComparison={positionalComparison}
+                  beginnerMode={beginnerMode}
+                />
+              </div>
+              <div id="masked-attention" style={{ scrollMarginTop: "112px" }}>
+                <MaskSection
+                  tokens={tokens}
+                  unmaskedWeights={data.unmasked.weights}
+                  maskedWeights={attention(data.Q, data.K, data.V, { temperature, scale: true, mask: makeCausalMask(tokens.length) }).weights}
+                  beginnerMode={beginnerMode}
+                />
+              </div>
+              <div id="experiment-mode" style={{ scrollMarginTop: "112px" }}>
+                <ExperimentSection
+                  temperatureData={experimentData}
+                  positionalComparison={positionalComparison}
+                  diversityData={diversityData}
+                  beginnerMode={beginnerMode}
+                />
+              </div>
+              <div id="research-summary" style={{ scrollMarginTop: "112px" }}>
+                <SummarySection summary={summary} beginnerMode={beginnerMode} />
+              </div>
             </div>
           </div>
         </main>

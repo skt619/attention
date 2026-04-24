@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import PlotCanvas from "./PlotCanvas.jsx";
 import Modal from "./Modal.jsx";
 
-export default function HeatmapPanel({ title, z, xLabels, yLabels, valueLabel = "value", selectedRow, selectedCol, onClick, expandable }) {
+export default function HeatmapPanel({ title, z, xLabels, yLabels, valueLabel = "value", selectedRow, selectedCol, onClick, expandable, compact = false }) {
   const text = z.map((row, i) =>
     row.map(
       (value, j) =>
@@ -88,7 +88,7 @@ export default function HeatmapPanel({ title, z, xLabels, yLabels, valueLabel = 
             shapes,
           }}
           config={{ displayModeBar: false, responsive: true }}
-          style={{ width: "100%", minHeight: 340 }}
+          style={{ width: "100%", minHeight: compact ? 280 : 340 }}
           onClick={onClick}
         />
       </div>

@@ -68,9 +68,10 @@ export default function ExperimentSection({ temperatureData, positionalCompariso
           ? "Run preset experiments to compare temperature, positional encoding, and head diversity."
           : "The experiment mode summarizes how attention behavior changes under key parameter sweeps."
       }
+      beginnerMode={beginnerMode}
     >
       <div style={{ display: "grid", gap: 24 }}>
-        <div style={{ display: "grid", gap: 18 }}>
+        <div className="chart-grid" style={{ display: "grid", gap: 18, gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))" }}>
           <LineChartPanel
             title="Avg entropy vs temperature"
             traces={[

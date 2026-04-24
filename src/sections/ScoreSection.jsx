@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import SectionCard from "../components/SectionCard.jsx";
 import HeatmapPanel from "../components/HeatmapPanel.jsx";
 import MatrixTable from "../components/MatrixTable.jsx";
@@ -14,21 +14,14 @@ export default function ScoreSection({ tokens, rawScores, Q, K, selectedToken, b
     }));
   }, [selectedToken, tokens.length]);
 
-  useEffect(() => {
-    setSelectedPair((current) => ({
-      ...current,
-      query: Math.min(selectedToken, tokens.length - 1),
-    }));
-  }, [selectedToken, tokens.length]);
-
   const selectedRow = rawScores[selectedToken] || [];
   const rowDetail = selectedRow
-    .map((value, j) => `${tokens[selectedToken]} · ${tokens[j]} = ${formatNum(value)}`)
+    .map((value, j) => `${tokens[selectedToken]} dot ${tokens[j]} = ${formatNum(value)}`)
     .join("\n");
 
   const selectedQVector = Q[selectedPair.query] || [];
   const selectedKVector = K[selectedPair.key] || [];
-  const pairTerms = selectedQVector.map((q, idx) => `${formatNum(q)}×${formatNum(selectedKVector[idx])}`);
+  const pairTerms = selectedQVector.map((q, idx) => `${formatNum(q)} x ${formatNum(selectedKVector[idx])}`);
   const dotProduct = selectedQVector.reduce((sum, q, idx) => sum + q * (selectedKVector[idx] ?? 0), 0);
 
   const handleHeatmapClick = (eventData) => {
@@ -46,20 +39,22 @@ export default function ScoreSection({ tokens, rawScores, Q, K, selectedToken, b
       title="Raw Attention Scores"
       subtitle={
         beginnerMode
-          ? "This matrix shows how much each query token matches each key token before scaling."
+          ? "This step compares every token with every other token."
           : "S = QK^T. Each entry S_ij is the dot product between query i and key j."
       }
+      beginnerMode={beginnerMode}
     >
       <div style={{ display: "grid", gap: 24 }}>
         <HeatmapPanel
-          title="Raw scores S = QKᵀ"
+          title="Raw scores S = QK^T"
           z={rawScores}
           xLabels={tokens}
           yLabels={tokens}
           valueLabel="score"
-          selectedRow={selectedPair.query}
+          selectedRow={selectedToken}
           selectedCol={selectedPair.key}
           onClick={handleHeatmapClick}
+          expandable
         />
 
         <MatrixTable
@@ -67,7 +62,7 @@ export default function ScoreSection({ tokens, rawScores, Q, K, selectedToken, b
           tokens={tokens}
           matrix={rawScores}
           columnLabels={tokens}
-          selectedRow={selectedPair.query}
+          selectedRow={selectedToken}
           selectedCol={selectedPair.key}
           explanation="Rows are query tokens, columns are key tokens. Click a cell in the heatmap to inspect one score."
         />
@@ -81,7 +76,7 @@ export default function ScoreSection({ tokens, rawScores, Q, K, selectedToken, b
           <div style={{ color: "#e2e8f0", fontSize: 14 }}>
             Selected score for query <strong>{tokens[selectedPair.query]}</strong> and key <strong>{tokens[selectedPair.key]}</strong>:
             <br />
-            S = q_i · k_j = {formatNum(dotProduct)}
+            S = q_i dot k_j = {formatNum(dotProduct)}
           </div>
           <div style={{ color: "#cbd5e1", whiteSpace: "pre-wrap", fontSize: 14 }}>
             {pairTerms.length

@@ -11,6 +11,7 @@ export default function InputSection({ tokenText, onTokenTextChange, tokens, sel
           ? "Type a comma-separated sentence and see each token become a vector for attention." 
           : "Input tokens are the starting units that are converted into embeddings and used by the attention mechanism."
       }
+      beginnerMode={beginnerMode}
     >
       <div style={{ display: "grid", gap: 16 }}>
         <div>
