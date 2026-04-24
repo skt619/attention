@@ -233,7 +233,7 @@ export default function App() {
     );
   }
 
-  const summary = `The input sentence contains ${tokens.length} tokens with d_model=${dModel}. Using ${activeNumHeads} attention heads, temperature ${temperature.toFixed(3)}, positional encoding ${usePositional ? "enabled" : "disabled"}, and ${causalMask ? "causal masking" : "no masking"}, the average attention entropy is ${data.avgEntropy.toFixed(3)} and sparsity is ${data.sparsity.sparsity.toFixed(3)}. The head diversity score is ${data.diversity.toFixed(3)}. The strongest attention pair is ${data.strongest.query} -> ${data.strongest.key} (${data.strongest.value.toFixed(3)}).`;
+  const summary = `The input sentence contains ${tokens.length} tokens with d_model=${dModel}. Using ${activeNumHeads} attention heads, temperature ${temperature.toFixed(3)}, positional encoding ${usePositional ? "enabled" : "disabled"}, and ${causalMask ? "causal masking" : "no masking"}, the average attention entropy is ${data.avgEntropy.toFixed(3)} and sparsity is ${data.sparsity.sparsity.toFixed(3)}. The head diversity score is ${data.diversity.toFixed(3)}. The strongest attention pair is ${data.strongest.query} → ${data.strongest.key} (${data.strongest.value.toFixed(3)}).`;
 
   const topNavHeight = 86;
 
@@ -284,7 +284,7 @@ export default function App() {
                 <StatCard label="Avg entropy" value={data.avgEntropy.toFixed(3)} />
                 <StatCard label="Sparsity" value={data.sparsity.sparsity.toFixed(3)} />
                 <StatCard label="Diversity" value={data.diversity.toFixed(3)} />
-                <StatCard label="Strongest pair" value={`${data.strongest.query} -> ${data.strongest.key}`} />
+                <StatCard label="Strongest pair" value={`${data.strongest.query} → ${data.strongest.key}`} />
                 <StatCard label="Position" value={usePositional ? "Enabled" : "Disabled"} />
                 <StatCard label="Masking" value={causalMask ? "Causal" : "None"} />
               </div>

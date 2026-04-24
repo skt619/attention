@@ -44,6 +44,20 @@ const badgeStyle = {
   flexShrink: 0,
 };
 
+const collapsedButtonStyle = {
+  width: "100%",
+  minHeight: 52,
+  padding: "9px 4px",
+  borderRadius: 12,
+  border: "1px solid #334155",
+  background: "rgba(15,23,42,0.8)",
+  color: "#e5eefc",
+  cursor: "pointer",
+  fontSize: 12,
+  fontWeight: 800,
+  lineHeight: 1.15,
+};
+
 export default function Sidebar({
   open,
   onToggle,
@@ -233,19 +247,9 @@ export default function Sidebar({
               onSectionChange("controls");
               onToggle();
             }}
-            style={{
-              width: "100%",
-              padding: "12px 0",
-              borderRadius: 12,
-              border: "1px solid #334155",
-              background: "rgba(15,23,42,0.8)",
-              color: "#e5eefc",
-              cursor: "pointer",
-              fontSize: 20,
-              fontWeight: 800,
-            }}
+            style={collapsedButtonStyle}
           >
-            C
+            Ctrl
           </button>
           <button
             type="button"
@@ -254,19 +258,9 @@ export default function Sidebar({
               onSectionChange("math");
               onToggle();
             }}
-            style={{
-              width: "100%",
-              padding: "12px 0",
-              borderRadius: 12,
-              border: "1px solid #334155",
-              background: "rgba(15,23,42,0.8)",
-              color: "#e5eefc",
-              cursor: "pointer",
-              fontSize: 20,
-              fontWeight: 800,
-            }}
+            style={collapsedButtonStyle}
           >
-            M
+            Math
           </button>
         </div>
       )}
